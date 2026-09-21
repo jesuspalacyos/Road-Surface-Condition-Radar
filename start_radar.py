@@ -8,10 +8,10 @@ import os
 # SETTINGS
 # ============================================================
 
-CLI_PORT = "COM4"
+CLI_PORT = "/dev/ttyUSB0"
 CLI_BAUD = 115200
 
-DATA_PORT = "COM3"
+DATA_PORT = "/dev/ttyUSB1"
 DATA_BAUD = 921600
 
 CFG_FILE = "profile.cfg"

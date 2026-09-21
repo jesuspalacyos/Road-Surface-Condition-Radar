@@ -1,0 +1,4 @@
+time,frame,radar_points,road_points,debris_points,depression_points,roughness,road_status
+2026-09-16T13:56:01.097,1,5,3,3,0,0,POSSIBLE DEBRIS / RAISED OBJECT
+time,frame,radar_points,road_points,debris_points,depression_points,roughness,road_status
+2026-09-16T14:22:40.365,1,6,5,5,0,0,POSSIBLE DEBRIS / RAISED OBJECT
