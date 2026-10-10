@@ -1,5 +1,6 @@
 import sys
 import serial
+import radar_ports
 import struct
 import math
 import time
@@ -17,7 +18,7 @@ MAGIC_WORD = b'\x02\x01\x04\x03\x06\x05\x08\x07'
 
 # IMPORTANT:
 # This MUST be the radar DATA port, NOT the CLI/configuration port.
-DATA_PORT = "COM3"
+DATA_PORT = radar_ports.DATA_PORT
 
 DATA_BAUD = 921600
 

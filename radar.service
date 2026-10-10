@@ -1,0 +1,23 @@
+# systemd service for a Raspberry Pi: starts the radar logger at boot.
+#
+# Install (edit User and paths first):
+#   sudo cp radar.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now radar.service
+# Check it:  journalctl -u radar -f
+
+[Unit]
+Description=mmWave radar logger
+After=multi-user.target
+
+[Service]
+User=pi
+WorkingDirectory=/home/pi/SeniorDesign/radar_PY
+Environment=RADAR_VENV=/home/pi/sd-venv
+ExecStartPre=/bin/sleep 5
+ExecStart=/home/pi/SeniorDesign/radar_PY/run_radar.sh log
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

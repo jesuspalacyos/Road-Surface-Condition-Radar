@@ -1,18 +1,20 @@
 import serial
+import radar_ports
 import time
+import os
 
-CLI_PORT = "COM4"
-DATA_PORT = "COM3"
-CONFIG_FILE = "profile.cfg"
+CLI_PORT = radar_ports.CLI_PORT
+DATA_PORT = radar_ports.DATA_PORT
+CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "profile.cfg")
 
-print("Opening COM4...")
+print(f"Opening {CLI_PORT}...")
 cli = serial.Serial(
     port=CLI_PORT,
     baudrate=115200,
     timeout=1
 )
 
-print("Opening COM3...")
+print(f"Opening {DATA_PORT}...")
 data = serial.Serial(
     port=DATA_PORT,
     baudrate=921600,
@@ -60,7 +62,7 @@ with open(CONFIG_FILE, "r") as cfg:
 
 print("\n================================================")
 print("Configuration finished.")
-print("Checking COM3 for radar data...")
+print(f"Checking {DATA_PORT} for radar data...")
 print("================================================\n")
 
 while True:

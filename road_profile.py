@@ -1,4 +1,5 @@
 import serial
+import radar_ports
 import struct
 import math
 import matplotlib.pyplot as plt
@@ -10,7 +11,7 @@ import numpy as np
 
 MAGIC_WORD = b'\x02\x01\x04\x03\x06\x05\x08\x07'
 
-DATA_PORT = "COM3"
+DATA_PORT = radar_ports.DATA_PORT
 BAUD_RATE = 921600
 
 # Update more often than before
@@ -39,7 +40,7 @@ buffer = b''
 print("======================================")
 print(" ROAD CONDITION RADAR")
 print("======================================")
-print("COM3 connected")
+print(f"{DATA_PORT} connected")
 print("Live road profile starting...")
 print("Press Ctrl+C to stop.\n")
 
@@ -116,6 +117,11 @@ while True:
     except struct.error:
         continue
 
+    # Reject corrupted headers so the loop never waits forever
+    if total_packet_len < 40 or total_packet_len > 65536:
+        buffer = buffer[8:]
+        continue
+
     if len(buffer) < total_packet_len:
         continue
 
@@ -152,7 +158,7 @@ while True:
 
             point_size = 16
 
-            for i in range(num_detected_obj):
+            for i in range(min(num_detected_obj, tlv_length // 16)):
 
                 start_point = offset + i * point_size
                 end_point = start_point + point_size
@@ -185,7 +191,7 @@ while True:
                 y_points.append(y)
                 z_points.append(z)
 
-        offset += tlv_length - 8
+        offset += tlv_length
 
     # ========================================================
     # CREATE ROAD PROFILE

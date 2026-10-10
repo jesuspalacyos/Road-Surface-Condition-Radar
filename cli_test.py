@@ -1,10 +1,11 @@
 import serial
+import radar_ports
 import time
 
-CLI_PORT = "COM4"
+CLI_PORT = radar_ports.CLI_PORT
 CLI_BAUD = 115200
 
-print("Opening radar CLI on COM4...")
+print(f"Opening radar CLI on {CLI_PORT}...")
 
 cli = serial.Serial(
     CLI_PORT,
@@ -16,7 +17,7 @@ time.sleep(1)
 
 cli.reset_input_buffer()
 
-print("COM4 opened.\n")
+print(f"{CLI_PORT} opened.\n")
 
 
 def send_command(command):
@@ -62,4 +63,4 @@ send_command(
 
 cli.close()
 
-print("COM4 closed.")
+print(f"{CLI_PORT} closed.")

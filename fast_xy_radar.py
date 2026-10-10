@@ -1,5 +1,6 @@
 import sys
 import serial
+import radar_ports
 import struct
 import math
 
@@ -14,7 +15,7 @@ import pyqtgraph as pg
 
 MAGIC_WORD = b'\x02\x01\x04\x03\x06\x05\x08\x07'
 
-DATA_PORT = "COM3"
+DATA_PORT = radar_ports.DATA_PORT
 BAUD_RATE = 921600
 
 MAX_FORWARD = 10.0
@@ -28,7 +29,7 @@ UPDATE_MS = 50
 # OPEN RADAR
 # ============================================================
 
-print("Opening COM3...")
+print(f"Opening {DATA_PORT}...")
 
 radar = serial.Serial(
     DATA_PORT,
@@ -36,7 +37,7 @@ radar = serial.Serial(
     timeout=0
 )
 
-print("COM3 connected.")
+print(f"{DATA_PORT} connected.")
 print("Starting live X-Y radar...")
 print("Move an object left/right and toward/away from radar.\n")
 
@@ -242,7 +243,7 @@ def read_radar():
 
             if tlv_type == 1:
 
-                for i in range(num_objects):
+                for i in range(min(num_objects, tlv_length // 16)):
 
                     point_start = (
                         offset +
@@ -301,7 +302,7 @@ def read_radar():
                     )
 
 
-            offset += tlv_length - 8
+            offset += tlv_length
 
 
         latest_x = x_values
@@ -375,4 +376,4 @@ finally:
 
     radar.close()
 
-    print("\nCOM3 closed.")
+    print(f"\n{DATA_PORT} closed.")

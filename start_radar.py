@@ -1,4 +1,5 @@
 import serial
+import radar_ports
 import time
 import sys
 import os
@@ -8,13 +9,19 @@ import os
 # SETTINGS
 # ============================================================
 
-CLI_PORT = "/dev/ttyUSB0"
+CLI_PORT = radar_ports.CLI_PORT
 CLI_BAUD = 115200
 
-DATA_PORT = "/dev/ttyUSB1"
+DATA_PORT = radar_ports.DATA_PORT
 DATA_BAUD = 921600
 
-CFG_FILE = "profile.cfg"
+# Look for the cfg next to this script, not in the current working folder
+CFG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "profile.cfg")
+
+# Optional: pass a different cfg on the command line
+#   python start_radar.py ..\oob_6843_isk_test.cfg
+if len(sys.argv) > 1:
+    CFG_FILE = os.path.abspath(sys.argv[1])
 
 
 # ============================================================
@@ -325,7 +332,7 @@ print("RADAR CONFIGURATION COMPLETE")
 print("=" * 65)
 
 print()
-print("Waiting for COM3 radar data...")
+print(f"Waiting for {DATA_PORT} radar data...")
 print()
 
 
@@ -333,62 +340,38 @@ time.sleep(1)
 
 
 # ============================================================
-# CHECK DATA PORT
+# CHECK DATA PORT (watch for 10 s to confirm the stream keeps going)
 # ============================================================
 
-for test_number in range(10):
+total_received = 0
 
-    waiting = data.in_waiting
+for second in range(1, 11):
 
-    print(
-        f"Check {test_number + 1}: "
-        f"{waiting} bytes waiting"
-    )
+    # Poll every 10 ms. Linux keeps only ~4 KB in the serial buffer,
+    # so reading once per second would drop data and cap the count.
+    got = 0
+    end = time.time() + 1.0
+    while time.time() < end:
+        waiting = data.in_waiting
+        if waiting > 0:
+            got += len(data.read(waiting))
+        time.sleep(0.01)
 
+    total_received += got
 
-    if waiting > 0:
+    print(f"Second {second:2d}: {got:6d} bytes   (total {total_received})")
 
-        incoming = data.read(
-            waiting
-        )
+print()
 
-        print()
-        print("======================================")
-        print("SUCCESS!")
-        print("======================================")
-        print()
-        print(
-            f"Received {len(incoming)} bytes "
-            f"from the AWR6843."
-        )
-
-        print()
-        print(
-            "The radar is now streaming."
-        )
-
-        print(
-            "You can now run the live graph."
-        )
-
-        break
-
-
-    time.sleep(0.5)
-
-
+if total_received == 0:
+    print(f"WARNING: no binary data was detected on {DATA_PORT}.")
 else:
+    print(f"Received {total_received} bytes in 10 s from the AWR6843.")
 
-    print()
-    print("======================================")
-    print("WARNING")
-    print("======================================")
-    print()
 
-    print(
-        "Configuration completed, but no "
-        "binary data was detected on COM3."
-    )
+# --- check the sensor is still running ---
+print()
+send_command("queryDemoStatus")
 
 
 # ============================================================
@@ -401,3 +384,7 @@ data.close()
 print()
 print("Ports closed.")
 print()
+
+# Non-zero exit code so launchers can tell the stream never started
+if total_received == 0:
+    sys.exit(2)
