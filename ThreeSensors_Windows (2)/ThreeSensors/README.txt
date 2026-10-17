@@ -6,7 +6,7 @@ Uploading this sketch replaces the existing ESP32 application (including any BLE
 
 1. WIRING (disconnect USB power while wiring)
 VL53L0X SDA -> XIAO D4 / GPIO5
-VL53L0X SCL -> XIAO D5 / GPIO6
+VL53L0X SCL -> XIAO D8 / GPIO7   (changed to match the actual wiring)
 ADXL335 X OUT -> XIAO D0 / GPIO1
 ADXL335 Y OUT -> XIAO D1 / GPIO2
 ADXL335 Z OUT -> XIAO D2 / GPIO3
@@ -39,12 +39,12 @@ It installs pyserial using your existing Python launcher, displays live readings
 and writes timestamped CSV files beside read_sensors.py. Internet is needed for the initial install.
 Alternatively, open the extracted ThreeSensors folder in File Explorer,
 click the address bar, type powershell and press Enter. Then run:
-  py -m pip install -r requirements.txt
-  py read_sensors.py --list-ports
-  py read_sensors.py --port COM5
+  python -m pip install -r requirements.txt
+  python read_sensors.py --list-ports
+  python read_sensors.py --port COM5
 Replace COM5 with your ESP32 port. Stop with Ctrl+C.
 Optional new CSV path:
-  py read_sensors.py --port COM5 --csv my_readings.csv
+  python read_sensors.py --port COM5 --csv my_readings.csv
 Existing files are protected from overwrite.
 
 4. WHAT YOU SEE
@@ -87,3 +87,8 @@ https://github.com/adafruit/Adafruit_VL53L0X
 https://github.com/mikalhart/TinyGPSPlus
 https://docs.espressif.com/projects/arduino-esp32/en/latest/api/adc.html
 https://www.analog.com/en/products/adxl335.html
+
+FIRMWARE v2 (team update): esp32_sensors.ino now samples the accelerometer at ~1 kHz and
+adds ax/ay/az_min_mv and _max_mv per 100 ms report (so short jolts are not averaged away),
+and reads the VL53L0X in non-blocking continuous mode. Existing fields are unchanged.
+Re-upload the sketch to get the new fields; read_sensors.py logs them when present.

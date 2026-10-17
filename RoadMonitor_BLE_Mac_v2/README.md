@@ -37,7 +37,7 @@ All grounds must connect together. ESP32 inputs must not receive 5 V.
 | ADXL335 Y / YOUT | D1 / A1 | 2 |
 | ADXL335 Z / ZOUT | D2 / A2 | 3 |
 | VL53L0X SDA | D4 | 5 |
-| VL53L0X SCL | D5 | 6 |
+| VL53L0X SCL | D8 | 7 |
 | NEO-6M TX / TXD | D7 / RX | 44 |
 | NEO-6M RX / RXD | Leave disconnected | — |
 | All sensor GND pins | GND | — |

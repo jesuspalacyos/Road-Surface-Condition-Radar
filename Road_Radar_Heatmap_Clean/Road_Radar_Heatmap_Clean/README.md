@@ -2,18 +2,18 @@
 
 Windows: extract this folder, open a terminal inside it, then run:
 
-    py -m pip install -r requirements.txt
-    py radar_heatmap.py --cli COM4 --data COM3
+    python -m pip install -r requirements.txt
+    python radar_heatmap.py --cli COM4 --data COM3
 
 Close mmWave Demo Visualizer and Tera Term first; only one program can own a COM port.
 COM4/COM3 are your earlier port assignments. Confirm Enhanced/CLI and Standard/DATA in Device Manager.
 Requires the standard xWR68xx SDK 3.x out-of-box firmware compatible with your SDK 3.6 configuration, not Small Obstacle Detection firmware or another lab's protocol.
-The included configuration is an unchanged copy of your upload. CLI baud: 115200; DATA: 921600.
+The included configuration enables all 4 RX antennas (channelCfg 15 1 0) for ~2x finer angle (about 30 deg vs 60 deg) than the original 2-RX upload. CLI baud: 115200; DATA: 921600.
 If your Visualizer already configured the board, close it and add --no-config.
 
 Try the interface without hardware:
 
-    py radar_heatmap.py --demo
+    python radar_heatmap.py --demo
 
 Click Calibrate to see the simulated positive and negative changes. Demo data is deliberately synthetic and proves no classification accuracy.
 
@@ -25,9 +25,9 @@ Click Calibrate to see the simulated positive and negative changes. Demo data is
 4. White circles mark the strongest persistent change for each sign. Three consecutive frames are required. Default threshold is 8 dB and four times baseline variation.
 5. Tune the region or threshold, for example:
 
-    py radar_heatmap.py --cli COM4 --data COM3 --min-range 0.5 --max-range 4 --threshold 10
+    python radar_heatmap.py --cli COM4 --data COM3 --min-range 0.5 --max-range 4 --threshold 10
 
-The left panel displays static range-angle return amplitude (relative, not calibrated power). The right displays change from baseline. Range means radar slant range, not depth below road or forward ground distance. Angular FFT interpolation does not improve physical antenna resolution. Two RX antennas in this profile give coarse angular discrimination. Peak locations and labels should not be treated as precise obstacle geometry.
+The left panel displays static range-angle return amplitude (relative, not calibrated power). The right displays change from baseline. Range means radar slant range, not depth below road or forward ground distance. Angular FFT interpolation does not improve physical antenna resolution. Four RX antennas with one TX still give only coarse angular discrimination (~30 deg). Peak locations and labels should not be treated as precise obstacle geometry.
 
 ## What it can and cannot determine
 

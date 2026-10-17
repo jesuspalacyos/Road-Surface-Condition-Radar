@@ -1,6 +1,7 @@
 """TI SDK 3.x static heatmap viewer. Labels are unvalidated anomaly hypotheses."""
 import argparse
 import struct
+import threading
 import time
 from pathlib import Path
 import numpy as np
@@ -194,6 +195,25 @@ def main():
                     color='#1e3a5f', hovercolor='#285282')
     button.label.set_color('white')
     button.on_clicked(baseline.start)
+    # Read the data port on a background thread. Linux/WSL only buffers ~4 KB,
+    # so reading only from the 100 ms plot timer would drop heatmap frames.
+    rx_lock = threading.Lock(); rx_buf = bytearray(); rx_stop = threading.Event()
+    def reader():
+        port.timeout = 0.05
+        while not rx_stop.is_set():
+            try:
+                chunk = port.read(port.in_waiting or 1)
+            except Exception:
+                break
+            if chunk:
+                with rx_lock:
+                    rx_buf.extend(chunk)
+    if port:
+        threading.Thread(target=reader, daemon=True).start()
+    def take_bytes():
+        with rx_lock:
+            data = bytes(rx_buf); rx_buf.clear()
+        return data
     stream = PacketStream(); last = time.monotonic(); frame_no = 0; markers = []; smoothed = None; color_limits = None
     rng = np.random.default_rng(4)
     synthetic = 45 + 8 * np.exp(-((ranges[:, None] - 2) / .5) ** 2) + np.zeros((bins, 64))
@@ -206,7 +226,7 @@ def main():
                 values[35:42, 34:39] += 13; values[60:67, 23:28] -= 13
             batches.append((frame_no, values))
         else:
-            for number, tlvs in stream.feed(port.read(port.in_waiting)):
+            for number, tlvs in stream.feed(take_bytes()):
                 if 4 in tlvs:
                     try: batches.append((number, heatmap(tlvs[4], bins, antennas)))
                     except ValueError as error: status.set_text(str(error)); return
@@ -235,6 +255,7 @@ def main():
     animation = FuncAnimation(fig, update, interval=100, cache_frame_data=False)
     try: plt.show()
     finally:
+        rx_stop.set(); time.sleep(0.1)
         if port: port.close()
         if cli: cli.close()
 

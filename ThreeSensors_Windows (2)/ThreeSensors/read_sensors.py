@@ -9,6 +9,9 @@ import time
 
 FIELDS = ['ms', 'tof_ok', 'distance_mm', 'range_status', 'ax_mv', 'ay_mv', 'az_mv',
           'gps_fix', 'lat', 'lon', 'speed_kmph', 'satellites', 'gps_chars']
+# Extra fields sent by firmware v2 (accelerometer min/max per 100 ms window). Optional,
+# so older firmware still works; they are blank in the CSV when absent.
+OPTIONAL = ['v', 'ax_min_mv', 'ax_max_mv', 'ay_min_mv', 'ay_max_mv', 'az_min_mv', 'az_max_mv', 'acc_n']
 
 
 def parse_packet(line):
@@ -48,7 +51,7 @@ def main():
     output = args.csv or Path(__file__).resolve().parent / ('readings_' + datetime.now().strftime('%Y%m%d_%H%M%S_%f') + '.csv')
     try:
         with serial.Serial(args.port, args.baud, timeout=1) as connection, output.open('x', newline='', encoding='utf-8') as log:
-            writer = csv.DictWriter(log, fieldnames=['pc_time_utc'] + FIELDS)
+            writer = csv.DictWriter(log, fieldnames=['pc_time_utc'] + FIELDS + OPTIONAL)
             writer.writeheader()
             print(f'Connected to {args.port}. Saving to {output}\nPress Ctrl+C to stop.')
             last_packet = time.monotonic()
@@ -62,7 +65,7 @@ def main():
                         data = parse_packet(raw.decode('utf-8'))
                     except (ValueError, UnicodeError):
                         continue
-                    writer.writerow({'pc_time_utc': datetime.now(timezone.utc).isoformat(), **{k: data[k] for k in FIELDS}})
+                    writer.writerow({'pc_time_utc': datetime.now(timezone.utc).isoformat(), **{k: data[k] for k in FIELDS}, **{k: data.get(k) for k in OPTIONAL}})
                     log.flush()
                     last_packet = time.monotonic()
                     if last_packet - last_display >= 0.5:

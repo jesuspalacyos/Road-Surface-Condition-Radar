@@ -1,5 +1,23 @@
 # Road Monitor for Raspberry Pi
 
+> **Team integration update (Oct 2026)** - this is now the main app. Changes:
+> - **`--auto`**: finds the ESP32 and radar by `/dev/serial/by-id` and uses `profile.cfg`
+>   from this folder. Run: `python app.py --auto`
+> - **Mount correction**: set `radar_height_m` and `radar_pitch_deg` (down-tilt) in
+>   `config.json`. Radar points are converted to road coordinates (forward / lateral /
+>   height above road) before any rule runs. Measure both with a tape and a level app.
+> - **Radar rules** (from `road_radar_pi.py`): points `debris_min_m`-`debris_max_m` above the
+>   road, or below `depression_m`, in the lane region, SNR >= `radar_snr_min_db`, at least
+>   `radar_min_points` points for `radar_frames_required` frames -> radar events. The
+>   ToF+radar "raised object" rule now uses these road-corrected points instead of any return.
+> - **SNR** is parsed from TLV 7 and attached to every point.
+> - **Radar points are logged** to `logs/*.jsonl` (`"type":"radar"`), so drives can be replayed.
+> - **Auto-recovery**: no radar frames for `radar_reconfig_s` -> port reopened and config re-sent.
+> - **ESP32 firmware v2**: accelerometer sampled at ~1 kHz with min/max per report; the shock
+>   value uses the window peak. Re-upload `esp32_sensors/esp32_sensors.ino`. v1 firmware still works.
+> - All thresholds are starting guesses - tune them from recorded, labeled tests.
+
+
 Local browser dashboard for XIAO ESP32-S3 + VL53L0X + ADXL335 + NEO-6M and TI AWR6843ISK.
 Includes a demo, live data, radar XY plot, GPS map/track, experimental road candidates,
 CSV event export, and timestamped JSONL sensor/event logs in `logs/`.
@@ -14,7 +32,7 @@ No BLE is required. Use adequate board power according to each board's manual.
 The included ESP32 firmware is copied from your latest ThreeSensors_Windows(2)
 package. If that firmware already works, do not upload it again.
 Its XIAO ESP32-S3 pin mapping is:
-- VL53L0X SDA = GPIO5 (D4), SCL = GPIO6 (D5).
+- VL53L0X SDA = GPIO5 (D4), SCL = GPIO7 (D8).  (SCL moved to D8 to match the team's wiring)
 - ADXL335 X/Y/Z = GPIO1/2/3 (D0/D1/D2).
 - GPS TX -> GPIO44 (D7/RX); GPS RX <- GPIO43 (D6/TX).
 - Common ground; preserve the supply wiring in your working setup.
@@ -77,9 +95,10 @@ uses a made-up location in live mode. Missing ToF range is not treated as a poth
 This parser supports mmWave SDK 3.x OUT-OF-BOX binary output: 40-byte header,
 TLV 1 = float x,y,z,velocity, TLV lengths exclude the 8-byte TLV header.
 It does not support compressed point-cloud, people-tracking or arbitrary custom
-firmware. Firmware and config must match. No radar config is fabricated or included.
-Copy YOUR WORKING full radar config into this folder as `profile.cfg`.
-It must enable detected-point output and finish with sensorStart.
+firmware. Firmware and config must match. `profile.cfg` in this folder is the team's
+tested bench config (3 TX so height/Z works, range-Doppler heatmap OFF so the firmware
+does not freeze). It is a 10 fps, ~0.67 m/s max-velocity config: fine for the bench,
+NOT for driving. A driving config is still to be made.
 
 After confirming which interface is CLI vs DATA, replace the examples:
 

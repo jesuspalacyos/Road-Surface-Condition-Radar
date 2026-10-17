@@ -18,7 +18,7 @@ class RadarParser:
                 del self.buf[0]; continue
             if len(self.buf)<total: break
             pkt=bytes(self.buf[:total]); del self.buf[:total]
-            pos=40; points=[]; types=[]; valid=True; found=False
+            pos=40; points=[]; types=[]; valid=True; found=False; snr=None
             for _ in range(ntlv):
                 if pos+8>total: valid=False; break
                 typ,size=struct.unpack_from('<II',pkt,pos); pos+=8; types.append(typ)
@@ -29,8 +29,13 @@ class RadarParser:
                     for p in struct.iter_unpack('<4f',pkt[pos:pos+size]):
                         if not all(math.isfinite(v) for v in p): valid=False; break
                         points.append(dict(zip(('x','y','z','v'),p)))
+                elif typ==7 and size==4*n:
+                    # Side info: int16 SNR and noise per point, units of 0.1 dB.
+                    snr=[a/10.0 for a,_ in struct.iter_unpack('<hh',pkt[pos:pos+size])]
                 pos+=size
             if valid:
+                for i,pt in enumerate(points):
+                    pt['snr']=snr[i] if snr is not None and i<len(snr) else None
                 frames.append({'frame':frame,'points':points,'types':types,
                                'supported':found or n==0})
         return frames

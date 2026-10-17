@@ -11,8 +11,8 @@ to decide whether a road is safe to drive on.
 1. Extract the entire ZIP into a normal folder, for example C:\Senior design\IceRadar.
 2. Open PowerShell in that folder and run:
 
-   py -m pip install -r requirements.txt
-   py ice_radar.py
+   python -m pip install -r requirements.txt
+   python ice_radar.py
 
    After installing dependencies you can also double-click START_WINDOWS.bat;
    this keeps the terminal open if Python reports an error.
@@ -29,7 +29,7 @@ to decide whether a road is safe to drive on.
 
 Optional command:
 
-   py ice_radar.py --cli COM4 --data COM3 --samples experiment2.json
+   python ice_radar.py --cli COM4 --data COM3 --samples experiment2.json
 
 Python must include Tkinter (included by the usual Windows Python installer).
 The radar must already run compatible TI mmWave SDK 3.x out-of-box firmware,

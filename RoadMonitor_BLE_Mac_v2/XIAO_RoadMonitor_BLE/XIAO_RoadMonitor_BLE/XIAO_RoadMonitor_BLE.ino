@@ -14,7 +14,7 @@
 #include <math.h>
 
 // GPIO numbers, NOT physical header positions.
-constexpr int AX=1, AY=2, AZ=3, SDA_PIN=5, SCL_PIN=6, GPS_RX=44;
+constexpr int AX=1, AY=2, AZ=3, SDA_PIN=5, SCL_PIN=7 /*D8, matches wiring*/, GPS_RX=44;
 constexpr float ZERO_MV=1650.0f, MV_PER_G=330.0f; // nominal for ADXL335 at 3.3 V
 constexpr char SERVICE[]="8e2a0001-7c43-4f58-90f0-7a5e90401a01";
 constexpr char DATA[]   ="8e2a0002-7c43-4f58-90f0-7a5e90401a01";

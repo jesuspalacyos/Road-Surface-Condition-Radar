@@ -1,6 +1,8 @@
 @echo off
 cd /d "%~dp0"
-py ice_radar.py
+REM Use "python" if it works, otherwise the "py" launcher.
+python --version >nul 2>nul && (set PY=python) || (set PY=py)
+%PY% ice_radar.py
 echo.
-echo If dependencies are missing, run: py -m pip install -r requirements.txt
+echo If dependencies are missing, run: %PY% -m pip install -r requirements.txt
 pause

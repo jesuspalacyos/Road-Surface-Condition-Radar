@@ -1,4 +1,19 @@
+# Python
 radar_env/
+.venv/
+venv/
 __pycache__/
 *.pyc
+
+# Images
 *.png
+
+# Run output (keep data out of git; share selected recordings deliberately)
+logs/
+captures/
+
+# OS / editor junk
+Thumbs.db
+desktop.ini
+.DS_Store
+.vscode/

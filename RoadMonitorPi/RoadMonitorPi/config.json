@@ -7,5 +7,15 @@
   "event_cooldown_s": 4,
   "radar_half_width_m": 0.8,
   "radar_near_m": 0.2,
-  "radar_far_m": 4.0
+  "radar_far_m": 4.0,
+  "radar_height_m": 0.6,
+  "radar_pitch_deg": 0.0,
+  "radar_snr_min_db": 8.0,
+  "debris_min_m": 0.08,
+  "debris_max_m": 0.8,
+  "depression_m": -0.07,
+  "radar_min_points": 3,
+  "radar_frames_required": 3,
+  "radar_reconfig_s": 5.0,
+  "radar_log_every": 1
 }
