@@ -1,0 +1,11 @@
+{
+  "vertical_axis": "az",
+  "accel_mv_per_g": 330,
+  "shock_g": 0.45,
+  "depth_mm": 50,
+  "raised_mm": 50,
+  "event_cooldown_s": 4,
+  "radar_half_width_m": 0.8,
+  "radar_near_m": 0.2,
+  "radar_far_m": 4.0
+}
