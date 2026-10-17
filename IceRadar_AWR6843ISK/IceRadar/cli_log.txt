@@ -1,0 +1,122 @@
+sensorStop
+sensorStop
+Ignored: Sensor is already stopped
+Done
+mmwDemo:/>
+flushCfg
+flushCfg
+Done
+mmwDemo:/>
+dfeDataOutputMode 1
+dfeDataOutputMode 1
+Done
+mmwDemo:/>
+channelCfg 3 1 0
+channelCfg 3 1 0
+Done
+mmwDemo:/>
+adcCfg 2 1
+adcCfg 2 1
+Done
+mmwDemo:/>
+adcbufCfg -1 0 1 1 1
+adcbufCfg -1 0 1 1 1
+Done
+mmwDemo:/>
+profileCfg 0 60 1077 7 28.49 0 0 30 1 256 12499 0 0 158
+profileCfg 0 60 1077 7 28.49 0 0 30 1 256 12499 0 0 158
+Done
+mmwDemo:/>
+chirpCfg 0 0 0 0 0 0 0 1
+chirpCfg 0 0 0 0 0 0 0 1
+Done
+mmwDemo:/>
+chirpCfg 1 1 0 0 0 0 0 0
+chirpCfg 1 1 0 0 0 0 0 0
+Done
+mmwDemo:/>
+frameCfg 0 0 16 0 71.429 1 0
+frameCfg 0 0 16 0 71.429 1 0
+Done
+mmwDemo:/>
+lowPower 0 0
+lowPower 0 0
+Done
+mmwDemo:/>
+guiMonitor -1 1 1 0 0 0 1
+guiMonitor -1 1 1 0 0 0 1
+Done
+mmwDemo:/>
+cfarCfg -1 0 2 8 4 3 0 15 1
+cfarCfg -1 0 2 8 4 3 0 15 1
+Done
+mmwDemo:/>
+cfarCfg -1 1 0 4 2 3 1 15 1
+cfarCfg -1 1 0 4 2 3 1 15 1
+Done
+mmwDemo:/>
+multiObjBeamForming -1 1 0.5
+multiObjBeamForming -1 1 0.5
+Done
+mmwDemo:/>
+clutterRemoval -1 0
+clutterRemoval -1 0
+Done
+mmwDemo:/>
+calibDcRangeSig -1 0 -5 8 256
+calibDcRangeSig -1 0 -5 8 256
+Done
+mmwDemo:/>
+extendedMaxVelocity -1 0
+extendedMaxVelocity -1 0
+Done
+mmwDemo:/>
+bpmCfg -1 0 0 1
+bpmCfg -1 0 0 1
+Done
+mmwDemo:/>
+lvdsStreamCfg -1 0 0 0
+lvdsStreamCfg -1 0 0 0
+Done
+mmwDemo:/>
+compRangeBiasAndRxChanPhase 0.0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0
+compRangeBiasAndRxChanPhase 0.0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0
+Done
+mmwDemo:/>
+measureRangeBiasAndRxChanPhase 0 1.5 0.2
+measureRangeBiasAndRxChanPhase 0 1.5 0.2
+Done
+mmwDemo:/>
+CQRxSatMonitor 0 3 4 63 0
+CQRxSatMonitor 0 3 4 63 0
+Done
+mmwDemo:/>
+CQSigImgMonitor 0 127 4
+CQSigImgMonitor 0 127 4
+Done
+mmwDemo:/>
+analogMonitor 0 0
+analogMonitor 0 0
+Done
+mmwDemo:/>
+aoaFovCfg -1 -90 90 -90 90
+aoaFovCfg -1 -90 90 -90 90
+Done
+mmwDemo:/>
+cfarFovCfg -1 0 0 49.99
+cfarFovCfg -1 0 0 49.99
+Done
+mmwDemo:/>
+cfarFovCfg -1 1 -1.13 1.13
+cfarFovCfg -1 1 -1.13 1.13
+Done
+mmwDemo:/>
+calibData 0 0 0
+calibData 0 0 0
+Done
+mmwDemo:/>
+sensorStart
+sensorStart
+Debug: Init Calibration Status = 0x1ffe
+Done
+mmwDemo:/>
