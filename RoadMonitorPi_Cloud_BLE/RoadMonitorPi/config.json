@@ -1,0 +1,17 @@
+{
+  "vertical_axis": "az",
+  "accel_mv_per_g": 330,
+  "shock_g": 0.45,
+  "depth_mm": 50,
+  "raised_mm": 50,
+  "event_cooldown_s": 4,
+  "radar_half_width_m": 0.8,
+  "radar_near_m": 0.2,
+  "radar_far_m": 4.0,
+  "persistence_samples": 2,
+  "radar_z_min_m": -2,
+  "radar_z_max_m": 2,
+  "cloud_snapshot_s": 30,
+  "cloud_device_id": "road-pi-01",
+  "cloud_collection": "roadmonitors"
+}
