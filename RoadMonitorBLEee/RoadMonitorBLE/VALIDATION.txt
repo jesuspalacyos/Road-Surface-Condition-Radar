@@ -1,0 +1,2 @@
+Software validation: 9 core tests passed. Python compilation and browser JavaScript syntax checks passed. HTTP demo command checks (calibrate/start/stop), state retrieval and CSV export passed.
+Visual browser rendering could not be checked in this environment because the browser download was unavailable. Physical BLE, Arduino compilation, radar compatibility, Firebase authentication and classification accuracy remain untested.

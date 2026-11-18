@@ -17,3 +17,11 @@ Thumbs.db
 desktop.ini
 .DS_Store
 .vscode/
+# secrets 
+**/firebase-key.json
+*-key.json
+._*
+.DS_Store
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
