@@ -27,6 +27,11 @@ class Tests(unittest.TestCase):
   pkt=MAGIC+struct.pack('<8I',0x03060000,40+len(t1)+len(t7),0xa6843,1,0,2,2,0)+t1+t7
   r=RadarParser().feed(pkt)[0]
   self.assertEqual([q['snr'] for q in r['points']],[15.0,5.5])
+ def test_range_profile(self):
+  vals=list(range(256)); t2=struct.pack('<II',2,512)+struct.pack('<256H',*vals)
+  pkt=MAGIC+struct.pack('<8I',0x03060000,40+len(t2),0xa6843,1,0,0,1,0)+t2
+  r=RadarParser().feed(pkt)[0]
+  self.assertEqual(r['range_profile'],vals); self.assertTrue(r['supported'])
  def test_tilt_and_radar_events(self):
   cfg=dict(json.loads(Path('config.json').read_text()),radar_height_m=1.0,radar_pitch_deg=30.0)
   m=Monitor(cfg)

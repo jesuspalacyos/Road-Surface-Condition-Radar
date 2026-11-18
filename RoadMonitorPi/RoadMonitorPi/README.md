@@ -188,3 +188,17 @@ Reference: TI SDK 3.x point structures:
 https://git.ti.com/cgit/mmwave_radar/mmwave_ti_ros/tree/ros2_driver/src/ti_mmwave_rospkg/include/mmWave.h
 Pi GPIO documentation:
 https://www.raspberrypi.com/documentation/computers/raspberry-pi.html
+
+## Wet/dry bench test (`wetdry.py`)
+
+Uses the radar's range profile (TLV 2) to compare backscatter from a dry vs wet surface.
+Bench only: radar and surface must be stationary, `clutterRemoval -1 0` (already set in profile.cfg).
+Stop app.py first. Extra packages: `pip install numpy matplotlib`.
+
+```
+python3 wetdry.py capture --label dry --height 0.6 --pitch 25 --surface concrete
+python3 wetdry.py capture --label wet --height 0.6 --pitch 25 --surface concrete
+python3 wetdry.py compare captures/wetdry_*.json        # prints stats, saves wetdry.png
+python3 wetdry.py live --ref captures/wetdry_dry_*.json  # live dB vs dry reference
+```
+Windows: add `--cli COM4 --data COM3`. Repeat each label 3-5 times (re-mount / re-wet) before trusting a result.
