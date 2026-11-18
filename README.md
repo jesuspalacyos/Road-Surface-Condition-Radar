@@ -1,40 +1,62 @@
-# Live Water / Ice Radar Capture
+# Road Surface Condition Radar (Senior Design)
 
-This package reads LIVE serial packets only. It never generates demo readings.
-Designed for the TI AWR6843ISK with compatible SDK 3.x out-of-box firmware that emits range-profile TLV type 2, as expected by the supplied original program.
+TI AWR6843ISK mmWave radar + XIAO ESP32-S3 sensor hub (VL53L0X distance, ADXL335
+accelerometer, NEO-6M GPS) on a Raspberry Pi 4. Research prototype - not a safety system.
 
-## Run on Windows (Command Prompt)
-Extract the ZIP. Open its Water_Ice_Live folder containing live.py.
-Click File Explorer's address bar, type cmd, and press Enter.
-Run each command separately:
+## Which app do I run?
 
-py -3 -m venv .venv
-.venv\Scripts\python.exe -m pip install -r requirements.txt
-.venv\Scripts\python.exe live.py --list-ports
+| Folder / file | Use it for | Runs on |
+|---|---|---|
+| **`RoadMonitorPi/RoadMonitorPi/`** | **Main app.** ESP32 sensors + radar, browser dashboard, events, logs | Pi |
+| `*.py` at repo root (`run_radar.py`, `start_radar.py`, viewers, `log_radar.py`) | Radar-only bench tools: configure, plot, log points to CSV | Windows / WSL / Pi |
+| `road_radar_pi.py` | Radar-only road analysis (its rules are now merged into RoadMonitorPi) | Pi |
+| `Road_Radar_Heatmap_Clean/` | Range-angle heatmap + "calibrate clean road" change detection (bench) | Windows / Pi |
+| `IceRadar_AWR6843ISK/` | Dry / wet / ice sample-matching experiment (stationary bench only) | Windows |
+| `ThreeSensors_Windows (2)/` | ESP32 firmware + logger for the 3 sensors alone | Windows |
+| `RoadMonitor_BLE_Mac_v2/` | Same sensors over Bluetooth to a Mac + Firebase (no radar) | Mac |
+| `RoadMonitorPi_Cloud_BLE/RoadMonitorPi/` | RoadMonitorPi + filtering, SQLite history, optional Firebase upload and BLE sensor link. **Its ESP firmware uses `Wire.begin(5, 6)`; our board has SCL on D8, so change it to `Wire.begin(5, 7)` before flashing.** | Pi |
+| `RoadMonitorBLEee/RoadMonitorBLE/` | BLE-first road monitor: browser control, GPS route map, SQLite + Firebase backup | Pi |
+| **`Water_Ice_Live/`** | Live dry / wet / ice range-profile classifier. Browser debug page at `http://<pi>:8050` (`--window` for the old plot window) | Pi / Windows |
+| `RoadMonitorPi/RoadMonitorPi/wetdry.py` | Bench wet/dry test: capture labelled range profiles, compare, live dB vs dry | Pi / Windows |
+| `IceRadar_Frequency_CSV_Enhanced (2).zip` | IceRadar with beat-frequency plot, dry-reference change view, labelled CSV capture + MATLAB script | Windows |
 
-Connect the radar by USB; close other radar apps that use its serial ports.
-Find its Application/CLI UART and Auxiliary/DATA UART in the list or Device Manager.
-Then run (COM3/COM4 are examples; replace with YOUR port numbers):
+## Quick start (Pi)
 
-.venv\Scripts\python.exe live.py --cli COM3 --data COM4
+```bash
+cd RoadMonitorPi/RoadMonitorPi
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+python app.py --demo     # try it without hardware, open http://localhost:8000
+python app.py --auto     # real hardware: finds ESP32 + radar, sends profile.cfg
+```
+Set `radar_height_m` and `radar_pitch_deg` in `config.json` to your measured mount first.
 
-No batch launcher or virtual-environment activation is needed.
-CLI uses 115200 baud, DATA defaults to 921600. Override DATA using --baud if your firmware requires it.
-This command sends the included road_profile.cfg and starts the sensor. It rejects configurations whose hash differs from the saved reference samples. Reusing other configurations requires new compatible training samples.
+## Radar configs (all for TI SDK 3.6 out-of-box firmware)
 
-## What happens
-The plot shows live match distances, four range-bin readings, and a dry/water-wet/ice/unknown prediction. Classification starts after one second of valid data and uses a trailing one-second median, updating up to five times per second. Windowing adds response delay. The display refreshes about twice per second and shows the latest minute.
-Close the plot or press Ctrl+C to stop. The program sends sensorStop, closes the ports, and saves a full-session PNG line plot if any predictions were produced.
+| Config | TX/RX | Notes |
+|---|---|---|
+| `profile.cfg` (root, and copy in RoadMonitorPi) | 3 TX / 4 RX | Height (Z) on, heatmap off, 10 fps, max ~0.67 m/s. **Bench only.** |
+| `Road_Radar_Heatmap_Clean/.../heatmap_profile.cfg` | 1 TX / 4 RX | Range-azimuth heatmap (~30 deg resolution) |
+| `IceRadar_AWR6843ISK/IceRadar/road_profile.cfg` | 1 TX / 2 RX | Range profile only, 0.24 m bins |
 
-outputs/ contains timestamped files:
-- *_raw.csv: all 256 range bins for every decoded frame, UTC timestamp, Unix timestamp, and radar frame ID.
-- *_predictions.csv: elapsed time, frame, live_serial source, unknown ground truth, predicted label, separation margin, median counts for bins 3-6, and class distances.
-- *.png: full-session line plot, saved on normal exit or handled acquisition error.
-- *.metadata.json: capture configuration and port settings.
-CSV files flush during capture. Force-killing the process may prevent the final PNG.
-cli_live_log.txt records radar configuration responses. A 10-second absence of valid TLV 2 data stops acquisition with an error; no substitute data is used.
+**Never enable the range-Doppler heatmap (`guiMonitor` 5th value = 1) at a 100 ms frame:**
+it overruns the 921600-baud UART and the firmware freezes after one frame.
 
-## Interpreting the readings
-The reference data is the original surface_samples.json: one labeled session per dry, wet, ice, 15 windows each. Wet is displayed as water/wet; it is not specifically validated standing-water detection. Bins 3-6 correspond approximately to 0.73-1.46 m with the supplied configuration. Keep the same mounting geometry and target region as the labeled training captures.
-Classification uses normalized distance to median class templates and rejects distant or ambiguous inputs. Separation margin is not a confidence probability. Raw processed range-profile counts are not calibrated power. These features can change with geometry and background; unknown is an expected outcome.
-This is experimental surface-region matching, not validated ice detection or localization of multiple objects. Collect multiple independent labeled sessions for every surface and evaluate on separate sessions before claiming accuracy. No physical radar was available to validate serial acquisition in this environment.
+**None of these work while driving yet** (max velocity is ~1 m/s). A driving config
+(>= ~22 m/s max velocity, 20-30 fps) is the next radar task.
+
+## Ports
+
+| | Windows | Linux / Pi |
+|---|---|---|
+| Radar CLI (115200) | COM4 | `/dev/serial/by-id/...CP2105...-if00` (ttyUSB0) |
+| Radar DATA (921600) | COM3 | `/dev/serial/by-id/...CP2105...-if01` (ttyUSB1) |
+| ESP32 (115200) | varies | `/dev/serial/by-id/...Espressif...` (ttyACM0) |
+
+Only one program can open a port at a time. On Linux read the DATA port at least every
+~50 ms (tty buffer is ~4 KB). User must be in the `dialout` group.
+
+## Git workflow
+`git pull` before you start. When done, `git add` the specific files/folders you changed (check `git status` first), then `git commit -m "..." && git push`.
+Don't upload `__pycache__`, venvs, logs, `outputs/`, `.sqlite` databases, keys, or zips of folders that are already in the repo.
+Each project keeps its own README and requirements.txt inside its folder - don't drop project files in the repo root.

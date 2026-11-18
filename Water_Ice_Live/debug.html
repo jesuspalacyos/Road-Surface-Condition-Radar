@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Water/Ice Radar Debug</title>
+<style>
+  :root {
+    --bg:#f6f7f9; --card:#ffffff; --ink:#1b1f24; --muted:#667080; --line:#e3e6ea; --grid:#eceef1;
+    --dry:#bf7e27; --wet:#008bc2; --ice:#7047bd; --unk:#8a8f98; --ok:#0f8a5f; --bad:#c2372c; --warn:#b7791f;
+    --b0:#2a6fdb; --b1:#d9480f; --b2:#2b8a3e; --b3:#c2255c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#111418; --card:#1a1e24; --ink:#e7eaee; --muted:#9aa3ae; --line:#2a3038; --grid:#232931; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
+  header { display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; padding:14px 16px; border-bottom:1px solid var(--line); background:var(--card); position:sticky; top:0; z-index:2; }
+  h1 { font-size:16px; margin:0; font-weight:650; }
+  .pill { padding:3px 10px; border-radius:999px; font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.04em; background:var(--grid); }
+  .pill.live { background:color-mix(in srgb, var(--ok) 18%, transparent); color:var(--ok); }
+  .pill.error { background:color-mix(in srgb, var(--bad) 18%, transparent); color:var(--bad); }
+  .pill.waiting, .pill.configuring, .pill.starting { background:color-mix(in srgb, var(--warn) 18%, transparent); color:var(--warn); }
+  .meta { color:var(--muted); font-size:12px; }
+  .spacer { flex:1; }
+  button { font:inherit; font-weight:600; padding:7px 14px; border-radius:8px; border:1px solid var(--bad); background:transparent; color:var(--bad); cursor:pointer; }
+  button:disabled { opacity:.4; cursor:default; }
+  main { padding:16px; display:grid; gap:14px; grid-template-columns:repeat(12, 1fr); max-width:1300px; margin:0 auto; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; min-width:0; }
+  .card h2 { font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:0 0 10px; font-weight:650; }
+  .pred { grid-column:span 4; display:flex; flex-direction:column; justify-content:center; }
+  .predlabel { font-size:40px; font-weight:750; letter-spacing:.01em; line-height:1.1; }
+  .stats { grid-column:span 8; display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; }
+  .stat .v { font-size:24px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .stat .k { color:var(--muted); font-size:12px; }
+  .wide { grid-column:span 12; }
+  .half { grid-column:span 6; }
+  canvas { width:100%; height:200px; display:block; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:var(--muted); margin-top:6px; }
+  .legend i { display:inline-block; width:10px; height:3px; border-radius:2px; margin-right:5px; vertical-align:middle; }
+  .err { grid-column:span 12; border-color:var(--bad); color:var(--bad); white-space:pre-wrap; display:none; }
+  .cfg { max-height:220px; overflow:auto; font:12px/1.5 ui-monospace,Menlo,Consolas,monospace; }
+  .cfg .no { color:var(--bad); }
+  .note { color:var(--muted); font-size:12px; }
+  table { border-collapse:collapse; font-variant-numeric:tabular-nums; width:100%; }
+  td { padding:3px 0; } td:last-child { text-align:right; font-weight:600; }
+  @media (max-width: 800px) { .pred, .stats, .half { grid-column:span 12; } .stats { grid-template-columns:repeat(2, 1fr); } .predlabel { font-size:32px; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Water / Ice Radar — debug</h1>
+  <span id="status" class="pill">connecting</span>
+  <span class="meta" id="ports"></span>
+  <span class="spacer"></span>
+  <span class="meta" id="elapsed"></span>
+  <button id="stop" title="Stop acquisition, send sensorStop and save the PNG">Stop &amp; save</button>
+</header>
+
+<main>
+  <div class="card err" id="err"></div>
+
+  <div class="card pred">
+    <h2>Current prediction (1 s median)</h2>
+    <div class="predlabel" id="pred">—</div>
+    <div class="note" id="margin">separation margin —</div>
+  </div>
+
+  <div class="card stats">
+    <div class="stat"><div class="v" id="frames">0</div><div class="k">frames decoded</div></div>
+    <div class="stat"><div class="v" id="fps">0</div><div class="k">frames / s (expect ~14)</div></div>
+    <div class="stat"><div class="v" id="bad">0</div><div class="k">malformed packets</div></div>
+    <div class="stat"><div class="v" id="age">—</div><div class="k">s since last frame</div></div>
+  </div>
+
+  <div class="card half">
+    <h2>Match distance (lower = closer)</h2>
+    <canvas id="cDist"></canvas>
+    <div class="legend"><span><i style="background:var(--dry)"></i>dry</span><span><i style="background:var(--wet)"></i>wet</span><span><i style="background:var(--ice)"></i>ice</span></div>
+  </div>
+
+  <div class="card half">
+    <h2>Feature bins (raw counts)</h2>
+    <canvas id="cBins"></canvas>
+    <div class="legend" id="binLegend"></div>
+  </div>
+
+  <div class="card wide">
+    <h2>Prediction timeline (last 60 s)</h2>
+    <canvas id="cPred" style="height:110px"></canvas>
+  </div>
+
+  <div class="card half">
+    <h2>Latest range profile (all bins)</h2>
+    <canvas id="cProf"></canvas>
+    <div class="note">Shaded = bins used for classification. Raw processed counts, not calibrated power.</div>
+  </div>
+
+  <div class="card half">
+    <h2>Distances &amp; features now</h2>
+    <table id="now"></table>
+    <h2 style="margin-top:14px">Radar config responses</h2>
+    <div class="cfg" id="cfg"></div>
+  </div>
+
+  <div class="card wide note" id="csv"></div>
+</main>
+
+<script>
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const LABELS = {'dry':'DRY','water/wet':'WATER / WET','ice':'ICE','unknown':'UNKNOWN'};
+const COLOR  = {'dry':'--dry','water/wet':'--wet','ice':'--ice','unknown':'--unk'};
+const LEVEL  = {'unknown':0,'dry':1,'water/wet':2,'ice':3};
+const BINCOL = ['--b0','--b1','--b2','--b3'];
+let stopped = false;
+
+function setupCanvas(c) {
+  const r = c.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  c.width = Math.max(1, r.width * dpr); c.height = Math.max(1, r.height * dpr);
+  const g = c.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0); return [g, r.width, r.height];
+}
+function niceRange(lo, hi) { if (!isFinite(lo)) return [0,1]; if (hi - lo < 1e-9) { lo -= 1; hi += 1; } const p=(hi-lo)*0.08; return [lo-p, hi+p]; }
+
+// generic line chart: series = [{color, pts:[[x,y],...]}]
+function lineChart(c, series, xr, yr, opts={}) {
+  const [g, W, H] = setupCanvas(c), L = opts.left || 46, R = 8, T = 8, B = 20;
+  g.clearRect(0,0,W,H);
+  const X = x => L + (x - xr[0]) / (xr[1] - xr[0]) * (W - L - R);
+  const Y = y => T + (1 - (y - yr[0]) / (yr[1] - yr[0])) * (H - T - B);
+  g.font = '11px system-ui'; g.fillStyle = css('--muted'); g.strokeStyle = css('--grid'); g.lineWidth = 1;
+  const yt = opts.yticks || [0,1,2,3,4].map(i => yr[0] + (yr[1]-yr[0]) * i / 4);
+  yt.forEach(v => { const y = Y(typeof v === 'object' ? v[0] : v); g.beginPath(); g.moveTo(L, y); g.lineTo(W - R, y); g.stroke();
+    g.textAlign = 'right'; g.textBaseline = 'middle'; g.fillText(typeof v === 'object' ? v[1] : (Math.abs(v) >= 100 ? v.toFixed(0) : v.toFixed(2)), L - 6, y); });
+  if (opts.xlabel !== false) { g.textAlign = 'center'; g.textBaseline = 'top';
+    const xs = opts.xticks || [0,1,2,3,4].map(i => xr[0] + (xr[1]-xr[0]) * i / 4);
+    xs.forEach((v, i) => { g.textAlign = i === 0 ? 'left' : (i === xs.length - 1 ? 'right' : 'center');
+      g.fillText(opts.xfmt ? opts.xfmt(v) : v.toFixed(0) + 's', X(v), H - B + 4); }); }
+  if (opts.shade) { g.fillStyle = css('--grid'); g.fillRect(X(opts.shade[0]), T, X(opts.shade[1]) - X(opts.shade[0]), H - T - B); }
+  series.forEach(s => {
+    g.strokeStyle = css(s.color); g.lineWidth = s.width || 1.6; g.beginPath();
+    s.pts.forEach(([x, y], i) => {
+      if (s.step && i) g.lineTo(X(x), Y(s.pts[i-1][1]));
+      i ? g.lineTo(X(x), Y(y)) : g.moveTo(X(x), Y(y));
+    });
+    g.stroke();
+  });
+}
+
+function render(s) {
+  const st = document.getElementById('status');
+  const cls = s.status === 'waiting for data' ? 'waiting' : s.status;
+  st.className = 'pill ' + cls; st.textContent = s.status;
+  document.getElementById('ports').textContent = `CLI ${s.cli} · DATA ${s.data} @ ${s.baud}`;
+  document.getElementById('elapsed').textContent = `${s.elapsed_s.toFixed(0)} s`;
+  const p = s.prediction;
+  const pe = document.getElementById('pred');
+  pe.textContent = p ? LABELS[p] : (s.status === 'live' ? 'warming up…' : '—');
+  pe.style.color = p ? css(COLOR[p]) : css('--muted');
+  document.getElementById('margin').textContent = s.margin == null ? 'separation margin —' : `separation margin ${s.margin.toFixed(2)} (not a probability; ≥ 0.25 needed to commit)`;
+  document.getElementById('frames').textContent = s.frames;
+  document.getElementById('fps').textContent = s.fps.toFixed(1);
+  document.getElementById('bad').textContent = s.bad_packets;
+  const age = document.getElementById('age');
+  age.textContent = s.data_age_s == null ? '—' : s.data_age_s.toFixed(1);
+  age.style.color = s.data_age_s != null && s.data_age_s > 2 ? css('--bad') : '';
+  const err = document.getElementById('err');
+  err.style.display = s.error ? 'block' : 'none'; err.textContent = s.error ? 'ERROR: ' + s.error : '';
+  document.getElementById('csv').textContent = 'Predictions CSV: ' + s.csv;
+  if (s.status === 'stopped' || s.status === 'error') { stopped = true; document.getElementById('stop').disabled = true; }
+
+  const h = s.history, fb = s.feature_bins;
+  document.getElementById('binLegend').innerHTML = fb.map((b,i) => `<span><i style="background:var(${BINCOL[i]})"></i>bin ${b}</span>`).join('');
+  if (h.length) {
+    const t1 = h[h.length-1].t, xr = [Math.max(0, t1 - 60), Math.max(t1, 1)];
+    const dAll = h.flatMap(r => r.d);
+    lineChart(document.getElementById('cDist'), ['--dry','--wet','--ice'].map((c,k) => ({color:c, pts:h.map(r => [r.t, r.d[k]])})),
+              xr, niceRange(Math.min(...dAll), Math.max(...dAll)));
+    const bAll = h.flatMap(r => r.b);
+    lineChart(document.getElementById('cBins'), BINCOL.slice(0, fb.length).map((c,k) => ({color:c, width:1.2, pts:h.map(r => [r.t, r.b[k]])})),
+              xr, niceRange(Math.min(...bAll), Math.max(...bAll)));
+    lineChart(document.getElementById('cPred'), [{color:'--ok', step:true, width:2, pts:h.map(r => [r.t, LEVEL[r.p]])}],
+              xr, [-0.4, 3.4], {left:62, yticks:[[0,'unknown'],[1,'dry'],[2,'wet'],[3,'ice']]});
+  }
+  if (s.profile) {
+    const pr = s.profile, lo = Math.min(...pr), hi = Math.max(...pr);
+    lineChart(document.getElementById('cProf'), [{color:'--b0', width:1.2, pts:pr.map((v,i) => [i, v])}],
+              [0, pr.length - 1], niceRange(lo, hi),
+              {shade:[Math.min(...fb) - 0.5, Math.max(...fb) + 0.5], xfmt: v => 'bin ' + v.toFixed(0)});
+  }
+  const rowsNow = [];
+  if (s.distances) for (const k of ['dry','wet','ice']) rowsNow.push(`<tr><td>distance ${k}</td><td style="color:var(${COLOR[k === 'wet' ? 'water/wet' : k]})">${s.distances[k].toFixed(3)}</td></tr>`);
+  if (s.features) for (const b of fb) rowsNow.push(`<tr><td>bin ${b} (1 s median)</td><td>${s.features[b].toFixed(1)}</td></tr>`);
+  document.getElementById('now').innerHTML = rowsNow.join('') || '<tr><td class="note">waiting for the first prediction…</td></tr>';
+  document.getElementById('cfg').innerHTML = s.config_log.map(c => `<div class="${c.ok ? '' : 'no'}">${c.ok ? '✓' : '✗'} ${c.cmd.replace(/</g,'&lt;')}</div>`).join('');
+}
+
+async function poll() {
+  try {
+    const r = await fetch('/api/state', {cache:'no-store'});
+    render(await r.json());
+  } catch (e) {
+    const st = document.getElementById('status');
+    st.className = 'pill error'; st.textContent = stopped ? 'stopped' : 'not reachable';
+  }
+  setTimeout(poll, stopped ? 3000 : 500);
+}
+document.getElementById('stop').onclick = async () => {
+  if (!confirm('Stop the radar and save the session?')) return;
+  document.getElementById('stop').disabled = true;
+  await fetch('/api/stop', {method:'POST'}).catch(() => {});
+};
+poll();
+</script>
+</body>
+</html>

@@ -25,3 +25,8 @@ desktop.ini
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal
+
+# Water_Ice_Live run output
+outputs/
+.venv/
+cli_live_log.txt
