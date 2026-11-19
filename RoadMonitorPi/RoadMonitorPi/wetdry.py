@@ -72,7 +72,8 @@ def send_cfg(cli_port, info):
         time.sleep(.5); cmd.reset_input_buffer()
         for line in info['lines']:
             cmd.write((line + '\n').encode()); cmd.flush()
-            deadline = time.monotonic() + 3; reply = b''
+            # sensorStart runs the RF calibration and can take several seconds
+            deadline = time.monotonic() + (10 if line.startswith('sensorStart') else 3); reply = b''
             while time.monotonic() < deadline:
                 reply += cmd.read(cmd.in_waiting or 1)
                 if b'Done' in reply or b'Error' in reply or b'not recognized' in reply:
