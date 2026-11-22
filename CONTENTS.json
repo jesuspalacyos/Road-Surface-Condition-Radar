@@ -1,0 +1,76 @@
+{
+  "project": "Water_Ice_Live",
+  "purpose": "radar + ESP32 USB sensor integration (updated Raspberry Pi guide)",
+  "files": [
+    {
+      "path": "Water_Ice_Live/.gitignore",
+      "bytes": 77,
+      "sha256": "8b4e2a145d14c5da68a0ad323431a00a3661b13fe5fcc5a7e7a583b62cdc1aaf"
+    },
+    {
+      "path": "Water_Ice_Live/README.md",
+      "bytes": 13461,
+      "sha256": "2019f9144f8cc75fe1254534c96e66616d059e1db1d1cddc7d10c5bd7677005e"
+    },
+    {
+      "path": "Water_Ice_Live/START_PI.sh",
+      "bytes": 1772,
+      "sha256": "053e9c5daecfd1c2e0b0c043b719c62e3cf88eb770ad01c737569292f13ba305"
+    },
+    {
+      "path": "Water_Ice_Live/START_WINDOWS.bat",
+      "bytes": 788,
+      "sha256": "cdb3eec0097559ee70f701839506a64a30ba3d5823b349f4f5d7af303cfa3666"
+    },
+    {
+      "path": "Water_Ice_Live/data/surface_samples.json",
+      "bytes": 1899,
+      "sha256": "1a4523390b2b8ea160531f83b5cac51c53b847ca732b1d90b80bac59a9de4316"
+    },
+    {
+      "path": "Water_Ice_Live/debug.html",
+      "bytes": 17505,
+      "sha256": "f484fe8537c40b2e78b39f4841432c68936fc2ddd233072236c12d4e6cf0da0d"
+    },
+    {
+      "path": "Water_Ice_Live/esp32_sensors/esp32_sensors.ino",
+      "bytes": 4405,
+      "sha256": "2bcb949121afa45cf5af0a3ab34de78625ec80a368d21623ac03db13972437cf"
+    },
+    {
+      "path": "Water_Ice_Live/live.py",
+      "bytes": 17283,
+      "sha256": "fa01ae4ca265d701d254b6a2b9c70e5c61c19865549739033461bcc38ce248da"
+    },
+    {
+      "path": "Water_Ice_Live/radar_decoder.py",
+      "bytes": 2249,
+      "sha256": "faa8927388a46cb97ed8c6a80c53f4f136e94448f849c16cf02280585436d6e5"
+    },
+    {
+      "path": "Water_Ice_Live/radar_model.py",
+      "bytes": 2770,
+      "sha256": "26cde6e748b1bdecd6898041e51378ecf0096f68b395d53189bf767e305647f5"
+    },
+    {
+      "path": "Water_Ice_Live/requirements.txt",
+      "bytes": 42,
+      "sha256": "ba45b63fcc7276d6948245fdb8e2382094a5614b53f09c3ccbe95b20c07ef9a2"
+    },
+    {
+      "path": "Water_Ice_Live/road_profile.cfg",
+      "bytes": 1544,
+      "sha256": "f7f926bf4fd8d522dca120993dc66b5a691c83a42cbbdf4a8f704e5addf5582d"
+    },
+    {
+      "path": "Water_Ice_Live/sensor_input.py",
+      "bytes": 12589,
+      "sha256": "c232a5f24111b48ffddbceae2e98e63baf84da62183b8f68cc294135f689c87f"
+    },
+    {
+      "path": "Water_Ice_Live/tests/test_integrated.py",
+      "bytes": 7549,
+      "sha256": "81228a3ee341179a5bcc1b17e7a9e26e6bcab50c605657acf39774b601f1ae18"
+    }
+  ]
+}

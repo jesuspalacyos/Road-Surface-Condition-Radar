@@ -1,5 +1,5 @@
-pyserial
-numpy
-matplotlib
-PyQt6
-pyqtgraph
+pyserial>=3.5,<4
+bless>=0.2.6,<0.3
+firebase-admin>=6.5,<8
+
+numpy>=2,<3
