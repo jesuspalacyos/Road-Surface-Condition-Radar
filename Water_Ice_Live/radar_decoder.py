@@ -1,6 +1,9 @@
+"""Decoder for SDK 3.x AWR6843ISK OOB range-profile TLV 2 packets."""
 import struct
 import numpy as np
+
 MAGIC = bytes.fromhex('0201040306050807')
+
 
 class Decoder:
     def __init__(self, bins):
@@ -26,11 +29,10 @@ class Decoder:
                 self.bad += 1
                 continue
             if len(self.buf) < size:
-                # Resynchronize if a corrupt length masks a subsequent complete packet.
                 j = self.buf.find(MAGIC, 8)
-                if j >= 0 and len(self.buf) >= j+40:
-                    next_size = struct.unpack_from('<I', self.buf, j+12)[0]
-                    if 40 <= next_size <= len(self.buf)-j:
+                if j >= 0 and len(self.buf) >= j + 40:
+                    next_size = struct.unpack_from('<I', self.buf, j + 12)[0]
+                    if 40 <= next_size <= len(self.buf) - j:
                         del self.buf[:j]
                         self.bad += 1
                         continue
@@ -39,17 +41,17 @@ class Decoder:
             del self.buf[:size]
             pos, profile, valid = 40, None, True
             for _ in range(count):
-                if pos+8 > size:
+                if pos + 8 > size:
                     valid = False
                     break
                 typ, length = struct.unpack_from('<II', packet, pos)
                 pos += 8
-                # SDK 3.x OOB length excludes the 8-byte TLV header.
-                if pos+length > size:
+                # SDK 3.x OOB TLV lengths exclude their 8-byte headers.
+                if pos + length > size:
                     valid = False
                     break
                 if typ == 2:
-                    if length != self.bins*2:
+                    if length != self.bins * 2:
                         valid = False
                         break
                     profile = np.frombuffer(packet, dtype='<u2', count=self.bins, offset=pos).astype(float)
@@ -59,4 +61,3 @@ class Decoder:
             elif not valid:
                 self.bad += 1
         return out
-
